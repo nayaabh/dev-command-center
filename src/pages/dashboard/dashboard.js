@@ -1,49 +1,72 @@
 import { Component } from 'react'
 import socketIOClient from "socket.io-client";
+import _ from 'lodash'
 import { Artifact } from "../../components/artifact/artifact"
+import * as Constants from "../../../backend/constants/command-types"
 const SERVER_URL = `http://127.0.0.1:4001`
-const ADMIN_URL = `${SERVER_URL}/admin`
+const APP_URL = `${SERVER_URL}/${Constants.APP}`
 export class Dashboard extends Component {
     constructor(props){
         super(props);
         this.state = {
-            sockResponse: "nothing",
-            adminResponse: "nothing"
+            repositories: {},
+            configs: {}
         }
-
+        this.generalIO = socketIOClient(SERVER_URL);
+        this.adminIO = socketIOClient(APP_URL);
     }
     componentDidMount() {
-        const { adminResponse } = this.state
+        this.fetchArtifacts()
+        this.fetchConfigs()
+    }
 
-        this.generalIO = socketIOClient(SERVER_URL);
-        this.adminIO = socketIOClient(ADMIN_URL);
-        this.generalIO.on("from-dashboard", data => this.setState({ sockResponse: data }));
-        this.generalIO.on("from-client-disconnect", data => this.setState({ sockResponse: data }));
-        this.adminIO.on("ADMIN_ACK", data => this.setState({ adminResponse: data }));
-        this.adminIO.on("ADMIN_DATA", data => {
+    fetchArtifacts() {
+        // Register Listeners
+        this.adminIO
+        .on(`${Constants.REGISTERED_ARTIFACTS} ${Constants.FETCH}`, (data) => {
             console.log(data)
-            // setTimeout(this.setState({ adminResponse: adminResponse+data }), 100)
+            this.setState({ repositories: data })
         })
-        this.adminIO.on("APP_CONFIG", data => {
-            console.log(data)
-            data.newproperty = "Some old text"
-            this.adminIO.emit("setConfig", data)
-        })
-        this.adminIO.on("APP_CONFIG_SET", () => {
-            console.log("Data Set")
-        })
-        this.generalIO.emit("dashboard")
-        this.adminIO.emit("getConfig")
+        // Send Request
+        this.adminIO
+        .emit(`${Constants.REGISTERED_ARTIFACTS} ${Constants.FETCH}`)
         
-        // setTimeout(()=> this.generalIO.emit("client-disconnect", "done"), 3000)
+    }
+    fetchConfigs() {
+        // Register Listeners
+        this.adminIO
+        .on(`${Constants.REGISTERED_CONFIGS} ${Constants.FETCH}`, (data) => {
+            console.log(data)
+            this.setState({ configs: data })
+        })
+        // Send Request
+        this.adminIO
+        .emit(`${Constants.REGISTERED_CONFIGS} ${Constants.FETCH}`)
+       
     }
 
     render() {
+        const { repositories, configs} = this.state
         return (
             <div className="dashboard-container">
-                <Artifact />
-                <Artifact />
-                <Artifact />
+                <div className="artifacts-container">
+                    {
+                        _.map(repositories, repo => <Artifact 
+                            key = {repo.id}
+                            id = {repo.id}
+                            location = {repo.location}
+                            />)  
+                    }
+                </div>
+                <div className="configs-container">
+                    {
+                        _.map(configs, repo => <Artifact 
+                            key = {repo.id}
+                            id = {repo.id}
+                            location = {repo.location}
+                            />)
+                    }
+                </div>
             </div>
         )
     }

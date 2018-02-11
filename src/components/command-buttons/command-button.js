@@ -25,10 +25,11 @@ export class CommandButton extends Component {
     }
 
     render() {
-        const { type, iconName } = this.props;
+        const { type, iconName, text, onClick } = this.props;
         const Icon = IconLib[type][iconName]
         return (
-            <div className="commands">
+            <div className="commands" onClick={onClick}>
+                <span className="badge">{text}</span>
                 <Icon />
             </div>
         )

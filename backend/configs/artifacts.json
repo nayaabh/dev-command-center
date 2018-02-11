@@ -1,11 +1,11 @@
 {
-    "registered-artifacts": [
+    "registeredArtifacts": [
         {
             "id": "my-demo-artifact",
             "location": "P:\\workspace\\demorepos\\my-demo-artifact"
         }
     ],
-    "registered-configs": [
+    "registeredConfigs": [
         {
             "id": "my-demo-artifacts-config",
             "location": "P:\\workspace\\demorepos\\my-demo-artifacts-config\\artifact.json"

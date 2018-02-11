@@ -1,0 +1,22 @@
+@import "../../constants";
+
+.menu-container {
+    display: flex;
+    height: 30px;
+    width: 100%;
+    background: @grey-10;
+    border-bottom: 1px solid @black-3;
+    .menu {
+        margin: 0 5px;
+        flex: 1 1 0%;
+        position: relative;
+        margin-bottom: -3px;
+        &.active {
+            border-bottom: 3px solid @red-color;
+            color: @red-color;
+        }
+        .icons {
+            margin: 0 5px;
+        }
+    }
+}

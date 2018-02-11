@@ -1,0 +1,15 @@
+{
+    "registered-artifacts": [
+        {
+            "id": "my-demo-artifact",
+            "location": "P:\\workspace\\demorepos\\my-demo-artifact"
+        }
+    ],
+    "registered-configs": [
+        {
+            "id": "my-demo-artifacts-config",
+            "location": "P:\\workspace\\demorepos\\my-demo-artifacts-config\\artifact.json"
+        }
+    ],
+    "newproperty": "Some old text"
+}

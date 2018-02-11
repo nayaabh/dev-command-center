@@ -1,0 +1,18 @@
+{
+  "name": "api-server",
+  "version": "1.0.0",
+  "description": "API server for Dev Control",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "start-client": "http-server ../dist"
+  },
+  "author": "Abhilash",
+  "license": "MIT",
+  "devDependencies": {
+    "express": "^4.16.2",
+    "lodash": "^4.17.5",
+    "rxjs": "^5.5.6",
+    "socket.io": "^2.0.4"
+  }
+}

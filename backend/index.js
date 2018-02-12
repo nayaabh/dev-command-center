@@ -30,8 +30,14 @@ appMetaIO.on('connect', (client) => {
                         if(!location){
                             return agg
                         }
-                        let artifactListInConfig = configIO.readConfigFrom(location)
-                        agg = [...agg, ...artifactListInConfig]
+                        let localRepos = _.reduce(artifactListInConfig, (a, repo) => {
+                            if(!repo.location) {
+                                return a
+                            }
+                            a.push(repo)
+                            return a
+                        }, [])
+                        agg = [...agg, ...localRepos]
                         return agg
                     }, [])
         let flatRepos = [...artifacts, ...aggr]

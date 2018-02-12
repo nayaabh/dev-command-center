@@ -43,8 +43,8 @@ const getSyncStatus = (location, localBranch, remoteBranch) => {
             }
             console.log("Location: ", location, " LocalBranch: ", localBranch, " remoteBranch:", remoteBranch)
             console.log("Success: ", stdout)
-            const behind = stdout.match(/^\</gm) || []
-            const ahead = stdout.match(/^\>/gm) || []
+            const ahead = stdout.match(/^\</gm) || []
+            const behind = stdout.match(/^\>/gm) || []
             resolve({behind:behind.length, ahead:ahead.length})
         })
     })

@@ -4,7 +4,8 @@
   "description": "",
   "main": "dist/js/index.js",
   "scripts": {
-    "start": "./node_modules/.bin/webpack-dev-server"
+    "start": "./node_modules/.bin/webpack-dev-server",
+    "build": "webpack"
   },
   "author": "Abhilash",
   "license": "MIT",
@@ -15,6 +16,7 @@
     "@babel/preset-react": "^7.0.0-beta.39",
     "@babel/preset-stage-0": "^7.0.0-beta.39",
     "babel-loader": "^8.0.0-beta.0",
+    "classnames": "^2.2.5",
     "css-loader": "^0.28.9",
     "json-loader": "^0.5.7",
     "less": "^2.7.3",

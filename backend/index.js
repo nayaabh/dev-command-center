@@ -4,8 +4,9 @@ const socketIO = require("socket.io");
 const _ = require('lodash')
 const index = require("./routes/index");
 const configIO = require('./configs/config')
-const Constants = require('./constants/command-types')
+const Constants = require('./constants/constants')
 const GitCommands = require('./commands/git-commands')
+const NodeCommands = require('./commands/node-commands')
 const port = process.env.PORT || 4001;
 
 const app = express();
@@ -21,7 +22,7 @@ const commandIO  = io.of('/command')
 
 appMetaIO.on('connect', (client) => {
     console.log("New client connected to admin")
-    
+    // APP META Collections
     client.on(`${Constants.REGISTERED_ARTIFACTS} ${Constants.FETCH}`, () => {
         let originalConfig = configIO.readConfig()
         let artifacts =  originalConfig[Constants.REGISTERED_ARTIFACTS]
@@ -30,6 +31,7 @@ appMetaIO.on('connect', (client) => {
                         if(!location){
                             return agg
                         }
+                        let artifactListInConfig = configIO.readConfigFrom(location)
                         let localRepos = _.reduce(artifactListInConfig, (a, repo) => {
                             if(!repo.location) {
                                 return a
@@ -43,21 +45,19 @@ appMetaIO.on('connect', (client) => {
         let flatRepos = [...artifacts, ...aggr]
         client.emit(`${Constants.REGISTERED_ARTIFACTS} ${Constants.FETCH}`, flatRepos)
     })
-
+    
     client.on(`${Constants.REGISTERED_CONFIGS} ${Constants.FETCH}`, () => {
         let originalConfig = configIO.readConfig()
         let configs = originalConfig[Constants.REGISTERED_CONFIGS]
         client.emit(`${Constants.REGISTERED_CONFIGS} ${Constants.FETCH}`, configs)
     })
-
-    /* client.on("setConfig", (data) => {
-        client.emit("APP_CONFIG_SET", configIO.writeConfig(data))
-    }) */
    
 });
 
 artefactIO.on(`connect`, client => {
     console.log("New Artifact registered")
+    // Artifacts subscriptions
+    // Git Sync
     client.on(`${Constants.ARTIFACT} ${Constants.GIT_SYNC}`, ({id, location, isGitRepo}) => {
         if(!isGitRepo) {
             GitCommands.isGitRepo(location).then((stdout) => {
@@ -80,7 +80,7 @@ artefactIO.on(`connect`, client => {
             GitCommands.getSyncStatus(location, branchName, branchName).then(({behind, ahead}) => {
                 client.emit(`${Constants.ARTIFACT} ${Constants.GIT_SYNC} id:${id}`, {
                     id, 
-                    isGitRepo,
+                    isGitRepo: true,
                     commitsAhead: ahead,
                     commitsBehind: behind,
                     branch: branchName
@@ -89,7 +89,94 @@ artefactIO.on(`connect`, client => {
         })
      }   
     })
-
+    // Git PULL
+    client.on(`${Constants.ARTIFACT} ${Constants.GIT_PULL}`, ({id, location}) => {
+        GitCommands.gitPull(location).then((stdout) => {
+            client.emit(`${Constants.ARTIFACT} ${Constants.GIT_PULL} id:${id}`, {
+                id,
+                stdout,
+                status: Constants.SUCCESS
+            })
+        }).catch(error => {
+            console.error("Git error: ", error)
+            client.emit(`${Constants.ARTIFACT} ${Constants.GIT_PULL} id:${id}`, {
+                id,
+                stdout: error,
+                status: Constants.FAILED
+            })
+        })   
+    })
+    // Git PUSH
+    client.on(`${Constants.ARTIFACT} ${Constants.GIT_PUSH}`, ({id, location}) => {
+        GitCommands.gitPush(location).then((stdout) => {
+            client.emit(`${Constants.ARTIFACT} ${Constants.GIT_PUSH} id:${id}`, {
+                id,
+                stdout,
+                status: Constants.SUCCESS
+            })
+        }).catch(error => {
+            console.error("Git error: ", error)
+            client.emit(`${Constants.ARTIFACT} ${Constants.GIT_PUSH} id:${id}`, {
+                id,
+                stdout: error,
+                status: Constants.FAILED
+            })
+        })   
+    })
+    // npm builds
+    client.on(`${Constants.ARTIFACT} ${Constants.BUILD_JS}`, ({id, location, customCommand}) => {
+        NodeCommands.triggerBuild(location, customCommand).subscribe({
+            next: ({status, stdout}) => {
+                client.emit(`${Constants.ARTIFACT} ${Constants.BUILD_JS} id:${id}`, {
+                    id,
+                    stdout,
+                    status
+                })
+            },
+            error: err => {
+                console.log(err)
+            },
+            complete: () => {
+                console.log("Build Finished")
+            }
+        })
+    })
+    // npm test
+    client.on(`${Constants.ARTIFACT} ${Constants.TEST_JS}`, ({id, location, customCommand}) => {
+        NodeCommands.triggerTest(location, customCommand).subscribe({
+            next: ({status, stdout}) => {
+                client.emit(`${Constants.ARTIFACT} ${Constants.TEST_JS} id:${id}`, {
+                    id,
+                    stdout,
+                    status
+                })
+            },
+            error: err => {
+                console.log(err)
+            },
+            complete: () => {
+                console.log("Test Finished")
+            }
+        })
+    })
+    // npm lint-fix
+    client.on(`${Constants.ARTIFACT} ${Constants.LINT_FIX_JS}`, ({id, location, customCommand}) => {
+        NodeCommands.triggerLint(location, customCommand).subscribe({
+            next: ({status, stdout}) => {
+                client.emit(`${Constants.ARTIFACT} ${Constants.LINT_FIX_JS} id:${id}`, {
+                    id,
+                    stdout,
+                    status
+                })
+            },
+            error: err => {
+                console.log(err)
+            },
+            complete: () => {
+                console.log("Lint Fix Finished")
+            }
+        })
+    })
 })
 /* io.on("connect", client => {
     console.log("New client connected")

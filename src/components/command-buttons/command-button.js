@@ -3,6 +3,7 @@ import * as GoIconPack from 'react-icons/lib/go'
 import * as MaterialDesignPack from 'react-icons/lib/md'
 import * as FontAwesomePack from 'react-icons/lib/fa'
 import * as TypIconsPack from 'react-icons/lib/ti'
+import classNames from 'classnames'
 
 const GO = "GO"
 const MD = "MD"
@@ -25,10 +26,11 @@ export class CommandButton extends Component {
     }
 
     render() {
-        const { type, iconName, text, onClick } = this.props;
+        const { type, iconName, text, onClick, status } = this.props;
         const Icon = IconLib[type][iconName]
+        const style = classNames('commands', status && status.toLowerCase())
         return (
-            <div className="commands" onClick={onClick}>
+            <div className={style} onClick={onClick}>
                 <span className="badge">{text}</span>
                 <Icon />
             </div>

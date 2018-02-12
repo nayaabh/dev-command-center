@@ -1,57 +1,75 @@
 const { spawn, exec, execSync } = require('child_process');
 const fs = require('fs')
 const path = require('path')
-const triggerBuild = location => {
-    if(!fs.statSync(location).isDirectory()){
-        location = path.dirname(location)
-    }
-    return new Promise((resolve, reject) => {
-        exec(`git -C "${location}" status`, (err, stdout, stderr) => {
-            if(err || stderr) {
-                reject(err || stderr)
-            }
-            console.log(stdout)
-            resolve(stdout)
+const Rx = require('rxjs')
+const Constants = require('../constants/constants')
+const getDir = location => fs.statSync(location).isDirectory() ? location : path.dirname(location)
+const commandRunner = (buildCommand, location) => {
+    console.log(`Build Command: ${buildCommand}`)
+    return Rx.Observable.create(observer => {
+        const buildProcess = spawn("cmd", ["/c", `${buildCommand}`], {cwd: `${location}`});
+        buildProcess.stdout.on('data', (data) => {
+            console.log("Build in progress...")
+            observer.next({
+                status: Constants.IN_PROGRESS,
+                stdout: data.toString()
+            })
+            console.log(data.toString())
+        })
+    
+        buildProcess.stderr.on('data', (data) => {
+            console.log("Build is failing...")
+            observer.next({
+                status: Constants.FAILED,
+                stdout: data.toString()
+            })
+            observer.complete()
+        })
+    
+        buildProcess.on('close', (code) => {
+            console.log("Build completed...")
+            observer.next({
+                status: Constants.SUCCESS,
+                stdout: `Build Completed with code ${code}`
+            })
+            observer.complete()
+        })
+        buildProcess.on('error', (code, msg) => {
+            console.log(`Command failed with code ${code}: ${msg}`)
+            observer.next({
+                status: Constants.FAILED,
+                stdout: `Command Failed with code ${code}: ${msg}`
+            })
+            observer.complete()
         })
     })
 }
-
-const triggerTest = location => {
-    if(!fs.statSync(location).isDirectory()){
-        location = path.dirname(location)
-    }
-    return new Promise((resolve, reject) => {
-        exec(`git -C "${location}" rev-parse --abbrev-ref HEAD`, (err, stdout, stderr) => {
-            if(err || stderr) {
-                reject(err || stderr)
-            }
-            console.log(stdout)
-            resolve(stdout.replace(/\n/gm,""))
-        })
-    })
+const triggerBuild = (location, customCommand = null) => {
+    location = getDir(location)
+    let buildCommand = customCommand ? `${customCommand}` : `npm run build` 
+    // buildCommand = `${buildCommand} --prefix "${location}"`
+    buildCommand = `${buildCommand}`
+    return commandRunner(buildCommand, location)
 }
 
-const triggerLint = (location, localBranch, remoteBranch) => {
-    if(!fs.statSync(location).isDirectory()){
-        location = path.dirname(location)
-    }
-    return new Promise((resolve, reject) => {
-        console.log(`git -C "${location}" rev-list --left-right ${localBranch}...origin/${remoteBranch}`)
-        exec(`git -C "${location}" rev-list --left-right ${localBranch}...origin/${remoteBranch}`, (err, stdout, stderr) => {
-            if(err || stderr) {
-                reject(err || stderr)
-            }
-            console.log("Location: ", location, " LocalBranch: ", localBranch, " remoteBranch:", remoteBranch)
-            console.log("Success: ", stdout)
-            const behind = stdout.match(/^\</gm) || []
-            const ahead = stdout.match(/^\>/gm) || []
-            resolve({behind:behind.length, ahead:ahead.length})
-        })
-    })
+const triggerTest = (location, customCommand = null) => {
+    location = getDir(location)
+    let buildCommand = customCommand ? `${customCommand}` : `npm run test` 
+    // buildCommand = `${buildCommand} --prefix "${location}"`
+    buildCommand = `${buildCommand}`
+    return commandRunner(buildCommand, location)
+}
+
+const triggerLint = (location, customCommand = null) => {
+    location = getDir(location)
+    let buildCommand = customCommand ? `${customCommand}` : `npm run lint-fix` 
+    // buildCommand = `${buildCommand} --prefix "${location}"`
+    buildCommand = `${buildCommand}`
+    return commandRunner(buildCommand, location)
 }
 
 module.exports = {
-    isGitRepo,
-    getCurrentBranch,
-    getSyncStatus
+    triggerBuild,
+    triggerTest,
+    triggerLint
 }

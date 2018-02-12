@@ -3,6 +3,10 @@
         {
             "id": "my-demo-artifact",
             "location": "P:\\workspace\\demorepos\\my-demo-artifact"
+        },
+        {
+            "id": "dev-command-center",
+            "location": "P:\\workspace\\Websites\\dev-command-center"
         }
     ],
     "registeredConfigs": [

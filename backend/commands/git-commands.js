@@ -1,10 +1,9 @@
 const { spawn, exec, execSync } = require('child_process');
 const fs = require('fs')
 const path = require('path')
+const getDir = location => fs.statSync(location).isDirectory() ? location : path.dirname(location)
 const isGitRepo = location => {
-    if(!fs.statSync(location).isDirectory()){
-        location = path.dirname(location)
-    }
+    location = getDir(location)
     return new Promise((resolve, reject) => {
         exec(`git -C "${location}" status`, (err, stdout, stderr) => {
             if(err || stderr) {
@@ -17,9 +16,7 @@ const isGitRepo = location => {
 }
 
 const getCurrentBranch = location => {
-    if(!fs.statSync(location).isDirectory()){
-        location = path.dirname(location)
-    }
+    location = getDir(location)
     return new Promise((resolve, reject) => {
         exec(`git -C "${location}" rev-parse --abbrev-ref HEAD`, (err, stdout, stderr) => {
             if(err || stderr) {
@@ -32,9 +29,7 @@ const getCurrentBranch = location => {
 }
 
 const getSyncStatus = (location, localBranch, remoteBranch) => {
-    if(!fs.statSync(location).isDirectory()){
-        location = path.dirname(location)
-    }
+    location = getDir(location)
     return new Promise((resolve, reject) => {
         console.log(`git -C "${location}" rev-list --left-right ${localBranch}...origin/${remoteBranch}`)
         exec(`git -C "${location}" rev-list --left-right ${localBranch}...origin/${remoteBranch}`, (err, stdout, stderr) => {
@@ -50,8 +45,33 @@ const getSyncStatus = (location, localBranch, remoteBranch) => {
     })
 }
 
+const gitExecuterOrigin = (command, location) => {
+    return new Promise((resolve, reject) => {
+        console.log(`git -C "${location}" ${command} origin`)
+        exec(`git -C "${location}" ${command} origin`, (err, stdout, stderr) => {
+            if(err || stderr) {
+                reject(err || stderr)
+            }
+            console.log("Success: ", stdout)
+            resolve(stdout)
+        })
+    })
+}
+
+const gitPull = location => {
+    location = getDir(location)
+    return gitExecuterOrigin("pull", location)
+}
+
+const gitPush = location => {
+    location = getDir(location)
+    return gitExecuterOrigin("push", location)
+}
+
 module.exports = {
     isGitRepo,
     getCurrentBranch,
-    getSyncStatus
+    getSyncStatus,
+    gitPull,
+    gitPush
 }

@@ -2,9 +2,8 @@ import { Component } from 'react'
 import socketIOClient from "socket.io-client";
 import _ from 'lodash'
 import { Artifact } from "../../components/artifact/artifact"
-import * as Constants from "../../../backend/constants/command-types"
-const SERVER_URL = `http://127.0.0.1:4001`
-const APP_URL = `${SERVER_URL}/${Constants.APP}`
+import * as Constants from "../../../backend/constants/constants"
+
 export class Dashboard extends Component {
     constructor(props){
         super(props);
@@ -12,8 +11,8 @@ export class Dashboard extends Component {
             repositories: {},
             configs: {}
         }
-        this.generalIO = socketIOClient(SERVER_URL);
-        this.adminIO = socketIOClient(APP_URL);
+        this.generalIO = socketIOClient(Constants.SERVER_URL);
+        this.adminIO = socketIOClient(Constants.APP_URL);
     }
     componentDidMount() {
         this.fetchArtifacts()

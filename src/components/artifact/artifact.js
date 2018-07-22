@@ -1,6 +1,7 @@
 import { Component } from 'react'
 import { GoGitBranch } from 'react-icons/lib/go'
-import socketIOClient from "socket.io-client";
+import socketIOClient from 'socket.io-client';
+import classNames from 'classnames';
 import { CommandButton, IconType } from '../command-buttons/command-button'
 import * as Constants from "../../../backend/constants/constants"
 
@@ -120,11 +121,12 @@ export class Artifact extends Component {
         .emit(`${Constants.ARTIFACT} ${Constants.LINT_FIX_JS}`, {id, location})
     }
     render() {
-        const { id, location } = this.props;
+        const { id, location, viewMode } = this.props;
         const { branch, commitsAhead, commitsBehind, buildStatus, lintStatus, testStatus, isGitRepo
         ,pullStatus, pushStatus } = this.state;
+        let isCompact = (viewMode === Constants.LIST)
         return (
-            <div className="artifact-container">
+            <div className={classNames("artifact-container", {"compact": isCompact})}>
                 <h2 className="artifact-name"> { id }</h2>
                 <span className="artifact-location"><strong>Location:</strong> { location }</span>
                 <div className="commands-properties">

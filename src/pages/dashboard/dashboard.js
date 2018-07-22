@@ -2,14 +2,19 @@ import { Component } from 'react'
 import socketIOClient from "socket.io-client";
 import _ from 'lodash'
 import { Artifact } from "../../components/artifact/artifact"
+import { ViewModeSelector } from "../../components/view-mode-selector/view-mode-selector"
 import * as Constants from "../../../backend/constants/constants"
+import { IconType, CommandButton } from "../../components/command-buttons/command-button"
+// import electron from 'electron'
 
+// const { dialog } = electron.remote
 export class Dashboard extends Component {
     constructor(props){
         super(props);
         this.state = {
             repositories: {},
-            configs: {}
+            configs: {},
+            viewMode: Constants.LIST
         }
         this.generalIO = socketIOClient(Constants.SERVER_URL);
         this.adminIO = socketIOClient(Constants.APP_URL);
@@ -43,28 +48,71 @@ export class Dashboard extends Component {
         .emit(`${Constants.REGISTERED_CONFIGS} ${Constants.FETCH}`)
        
     }
-
+    switchViewMode(mode) {
+        this.setState({
+            viewMode: mode
+        })
+    }
+    // showDialogue() {
+    //     dialog.showMessageBox({
+    //         type: 'info',
+    //         buttons: ['OK', 'NOT OK', 'LOL', 'Cancel'],
+    //         message: 'How are you doing?'
+    //     })
+    // }
+    // <button onClick = {this.showDialogue}>Show Dialogue</button>
     render() {
-        const { repositories, configs} = this.state
+        const { repositories, configs, viewMode} = this.state
         return (
-            <div className="dashboard-container">
-                <div className="artifacts-container">
-                    {
-                        _.map(repositories, repo => <Artifact 
-                            key = {repo.id}
-                            id = {repo.id}
-                            location = {repo.location}
-                            />)  
-                    }
+            <div className="dashboard-wrapper">
+                <ViewModeSelector 
+                    modeList = {[Constants.LARGE_LIST, Constants.LIST]}
+                    onClick = {(mode) => this.switchViewMode(mode)}
+                    selectedMode = {viewMode}
+                />
+                <div className="commands-container">
+                    <CommandButton 
+                        type = {IconType.GO}
+                        iconName = "GoPackage" 
+                        onClick = {() => this.npmBuildSelected()}
+                    />
+                    <CommandButton 
+                        type = {IconType.FA}
+                        iconName = "FaFlask" 
+                        onClick = {() => this.npmTestSelected()}
+                        />
+                        <CommandButton 
+                        type = {IconType.FA}
+                        iconName = "FaLeaf" 
+                        onClick = {() => this.npmLintSelected()}
+                        />
                 </div>
-                <div className="configs-container">
-                    {
-                        _.map(configs, repo => <Artifact 
-                            key = {repo.id}
-                            id = {repo.id}
-                            location = {repo.location}
-                            />)
-                    }
+                <div className="dashboard-container">
+                    <div className="artifacts-container">
+                        <span> Artifacts </span>
+                        {
+                            _.map(repositories, repo => <Artifact 
+                                key = {repo.id}
+                                id = {repo.id}
+                                configs = {configs}
+                                viewMode = {viewMode}
+                                location = {repo.location}
+                                onSelect = {(isSelected) => this.registerRepo(isSelected, repo)}
+                                />)  
+                        }
+                    </div>
+                    <div className="configs-container">
+                        <span> Configs </span>
+                        {
+                            _.map(configs, repo => <Artifact 
+                                key = {repo.id}
+                                id = {repo.id}
+                                configs = {configs}
+                                viewMode = {viewMode}
+                                location = {repo.location}
+                                />)
+                        }
+                    </div>
                 </div>
             </div>
         )

@@ -30,6 +30,10 @@ const SERVER_URL = `http://127.0.0.1:4001`
 const APP_URL = `${SERVER_URL}/${APP}`
 const ARTIFACT_URL = `${SERVER_URL}/${ARTIFACT}`
 
+// Display Style
+const LARGE_LIST = "LARGE_LIST"
+const LIST = "LIST"
+
 module.exports = {
     ADMIN,
     APP,
@@ -51,5 +55,7 @@ module.exports = {
     REGISTERED_CONFIGS,
     SERVER_URL,
     APP_URL,
-    ARTIFACT_URL
+    ARTIFACT_URL,
+    LARGE_LIST,
+    LIST
 }

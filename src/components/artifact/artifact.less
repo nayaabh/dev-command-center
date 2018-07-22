@@ -9,13 +9,36 @@
     .commands-properties {
         display: flex;
         .git-properties{
-            flex: 0.2 0.2 0%;
+            flex: 1 1 0%;
         }
         .commands-container {
             flex: 1 1 0%;
             display: flex;
             .commands {
                 margin: 0 10px;
+            }
+        }
+    }
+    &.compact {
+        display: flex;
+        margin: 10px 2px;
+        font-size: 11px;
+        .artifact-name {
+            font-size: 11px;
+            min-width: 250px;
+        }
+        .artifact-location {
+            display: none;
+        }
+        .commands-properties {
+            .git-properties{
+                width: 110px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .commands-container .commands {
+                margin: 0 5px;
             }
         }
     }
